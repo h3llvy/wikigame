@@ -26,7 +26,6 @@ class StoreGameSchema extends SchemaFactory implements Reusable
                 Schema::string('development_studio')->default(fake()->company()),
                 Schema::number('rating')->default(fake()->randomFloat(2, 0, 10)),
                 Schema::array('genres')->items(Schema::integer())->example([1, 2, 3]),
-                Schema::string('created_at')->format(Schema::FORMAT_DATE_TIME)->default(Date::now()),
             );
     }
 }

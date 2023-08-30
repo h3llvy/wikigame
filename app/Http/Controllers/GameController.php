@@ -4,12 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Game\StoreGameRequest;
 use App\Http\Requests\Game\UpdateGameRequest;
-use App\Http\Services\Game\GetGameListService;
 use App\Models\Game;
 use App\OpenApi\Parameters\Game\ListGameParameters;
 use App\OpenApi\RequestBodies\Game\StoreGameRequestBody;
 use App\OpenApi\Responses\Game\GameResponse;
 use App\OpenApi\Responses\Game\ListGameResponse;
+use App\Services\Game\CreateGameService;
+use App\Services\Game\DeleteGameService;
+use App\Services\Game\GetGameListService;
+use App\Services\Game\ShowGameService;
+use App\Services\Game\UpdateGameService;
 use Illuminate\Http\Request;
 use Vyuldashev\LaravelOpenApi\Attributes as OpenApi;
 
@@ -23,11 +27,11 @@ class GameController extends Controller
     #[OpenApi\Parameters(ListGameParameters::class)]
     #[OpenApi\Response(ListGameResponse::class)]
     public function index(
-        GetGameListService $gameListService,
+        GetGameListService $service,
         Request            $request
     )
     {
-        return $gameListService->getList(
+        return $service->getList(
             $request->input('per-page'),
             $request->input('rating_from'),
             $request->input('rating_to')
@@ -40,16 +44,9 @@ class GameController extends Controller
     #[OpenApi\Operation(tags: ['Games'], method: 'POST')]
     #[OpenApi\RequestBody(StoreGameRequestBody::class)]
     #[OpenApi\Response(GameResponse::class)]
-    public function store(StoreGameRequest $request)
+    public function store(CreateGameService $service, StoreGameRequest $request)
     {
-        /** @var Game $game */
-        $game = Game::create($request->except('genres'));
-
-        $game->genres()->attach($request->validated('genres'));
-
-        $game->load('genres');
-
-        return $game;
+        return $service->create($request);
     }
 
     /**
@@ -57,11 +54,9 @@ class GameController extends Controller
      */
     #[OpenApi\Operation(tags: ['Games'])]
     #[OpenApi\Response(GameResponse::class)]
-    public function show(Game $game)
+    public function show(ShowGameService $service, Game $game)
     {
-        $game->load('genres');
-
-        return $game;
+        return $service->show($game);
     }
 
     /**
@@ -70,17 +65,13 @@ class GameController extends Controller
     #[OpenApi\Operation(tags: ['Games'])]
     #[OpenApi\RequestBody(StoreGameRequestBody::class)]
     #[OpenApi\Response(GameResponse::class)]
-    public function update(UpdateGameRequest $request, Game $game)
+    public function update(
+        UpdateGameService $service,
+        UpdateGameRequest $request,
+        Game              $game
+    )
     {
-        $game->update($request->except('genres'));
-
-        if ($request->has('genres')) {
-            $game->genres()->sync($request->input('genres'));
-        }
-
-        $game->load('genres');
-
-        return $game;
+        return $service->update($request, $game);
     }
 
     /**
@@ -88,12 +79,8 @@ class GameController extends Controller
      */
     #[OpenApi\Operation(tags: ['Games'])]
     #[OpenApi\Response(GameResponse::class)]
-    public function destroy(Game $game)
+    public function destroy(DeleteGameService $service, Game $game)
     {
-        $game->delete();
-
-        $game->load('genres');
-
-        return $game;
+        return $service->delete($game);
     }
 }
