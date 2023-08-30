@@ -7,4 +7,4 @@ vendor/bin/sail up -d
 vendor/bin/sail artisan migrate --seed
 ```
 
-Перейти на страницу с документацией и тестировать приложение
+Перейти на страницу (http://localhost) с документацией и тестировать приложение
